@@ -110,6 +110,7 @@ textarea{width:100%;min-height:120px;font:14px ui-monospace,monospace;border-rad
 .note{font-size:13px;color:var(--mute)}
 .inst{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:center;background:var(--card);border:2px solid var(--teal);border-radius:18px;padding:14px;margin-bottom:14px}.inst img{width:56px;height:56px;border-radius:14px}.inst>div>b{display:block;font:700 20px 'Barlow Condensed',sans-serif}.inst span{display:block;font-size:15px;color:var(--mute);line-height:1.45}.inst span b{color:var(--ink)}.inst .row{grid-column:1/-1}.inst .go{flex:1;min-height:48px;font-size:20px}
 #tmr .in{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.coach{background:var(--head);color:#f4efe6;border-radius:18px;padding:16px;margin:12px 0;display:grid;gap:12px}.coach .ch b{display:block;font:800 24px 'Barlow Condensed',sans-serif}.coach .ch span{font-size:15px;color:#cfc6b8}.coach .ghost{background:#ffffff14;border-color:#ffffff30;color:#f4efe6}.coach .go{flex:1}.coach .go:disabled{opacity:.5}.coach summary{color:#cfc6b8}.coach .desc,.coach .note{color:#cfc6b8}.coach .desc b{color:#fff}.coach .chip{background:#ffffff10;border-color:#ffffff30;color:#f4efe6}.coach .chip.on{background:#8fd3cf;color:#24201c;border-color:#8fd3cf}.coach label{color:#cfc6b8}#cMic.lis{background:#178f87;animation:pul 1.2s infinite}@keyframes pul{50%{opacity:.75}}.ex.cur{border:3px solid var(--or);box-shadow:0 6px 0 var(--or-s)}#cFab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:6;min-width:120px;min-height:60px;border-radius:30px;border:0;background:var(--or);color:#fff;font:800 22px 'Barlow Condensed',sans-serif;box-shadow:0 6px 18px #0005;padding:0 22px}#cFab.lis{background:#178f87;animation:pul 1.2s infinite}#cFab[hidden]{display:none}#tmr.on~#cFab{bottom:calc(96px + env(safe-area-inset-bottom))}
 @media(max-width:560px){.ex{grid-template-columns:minmax(0,1fr)}.pic{max-width:260px}.grid{grid-template-columns:auto 1fr 1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -276,7 +277,7 @@ function card(e,g,m){
  h+=`<div class="sets">${Array.from({length:ns},(_,i)=>`<button class="dot ${i<xl.n?'on':''}" data-set="${e.id}" data-i="${i}" aria-label="Serie ${i+1}">${i+1}</button>`).join('')}<button class="fatto" data-ok="${e.id}">${xl.ok?'✓ Fatto':'Fatto'}</button></div>`;
  const pend=m>1&&l.m<m&&m===S.month;
  h+=pend?prog(e,l,m,true):'';
- h+=`<details ${pend?'':''}><summary>Come si fa e livello</summary><p class="desc">${esc(e.d)}</p><div class="lvl">`;
+ h+=`<details ${pend?'':''}><summary>Come si fa e livello</summary><p class="desc">${esc(e.d)}</p>${FUN[e.id]?`<p class="desc"><b>A cosa serve:</b> ${esc(FUN[e.id])}</p>`:''}<div class="lvl">`;
  if(e.w.length>1)h+=`<label>${e.w.some(x=>/kg/.test(x))?'Peso / variante':'Variante'}</label><div class="chips">${e.w.map((x,i)=>`<button class="chip ${i===l.w?'on':''}" data-lv="${e.id}" data-k="w" data-v="${i}">${esc(x)}</button>`).join('')}</div>`;
  if(e.r.length>1)h+=`<label>Ripetizioni</label><div class="chips">${e.r.map((x,i)=>`<button class="chip ${i===l.r?'on':''}" data-lv="${e.id}" data-k="r" data-v="${i}">${esc(x)}</button>`).join('')}</div>`;
  if(e.s.length>1)h+=`<label>Serie</label><div class="chips">${e.s.map((x,i)=>`<button class="chip ${i===l.s?'on':''}" data-lv="${e.id}" data-k="s" data-v="${i}">${x}</button>`).join('')}</div>`;
@@ -297,12 +298,12 @@ function prog(e,l,m,pend){
 }
 function session(){
  const m=view.m??S.month,s=P.find(x=>x.w===view.w&&x.d===view.d),g=sess(m,s.w,s.d),st=stat(m,s);
- let h=`<div class="shead"><h2>Settimana ${s.w} · Giorno ${s.d}</h2><span class="note">Mese ${m}</span></div><div class="meter"><i style="width:${st.dn/st.tot*100}%"></i></div><p class="note">${st.dn} di ${st.tot} fatti · tocca un pallino a fine serie: parte il recupero.</p>`;
+ let h=`<div class="shead"><h2>Settimana ${s.w} · Giorno ${s.d}</h2><span class="note">Mese ${m}</span></div><div class="meter"><i style="width:${st.dn/st.tot*100}%"></i></div><p class="note">${st.dn} di ${st.tot} fatti · tocca un pallino a fine serie: parte il recupero.</p>`+coach.panel();
  if(st.closed)h+=`<div class="banner"><b>Allenamento completato</b>Chiuso ${fmtD(g.closed)}. Ottimo lavoro.</div>`;
  h+=`<div class="sec">Mobilità e riscaldamento · pausa 15-30″</div>`+s.mob.map(e=>card(e,g,m)).join('');
  h+=`<div class="sec">Allenamento</div>`+s.ex.map(e=>card(e,g,m)).join('');
  const i=P.indexOf(s);h+=`<div class="row" style="margin-top:18px">${i>0?`<button class="ghost" data-open="${P[i-1].w}-${P[i-1].d}">‹ Giorno precedente</button>`:''}${i<P.length-1?`<button class="ghost" data-open="${P[i+1].w}-${P[i+1].d}" style="margin-left:auto">Giorno successivo ›</button>`:''}</div>`;
- app.innerHTML=h;
+ app.innerHTML=h;coach.paint();
 }
 function legend(){
  app.innerHTML=`<div class="card"><h3>Come leggere un esercizio</h3><p><b>6/8/10 × 5 · pausa 2′-1′</b> = ripetizioni × serie, poi il recupero.</p><p>BW = corpo libero. Zav = con sovraccarico del peso indicato.</p><p>Presa neutra: anelli paralleli. Prona: palmo in avanti. Supina: palmo verso di te.</p></div>
@@ -317,14 +318,14 @@ function render(){
  document.getElementById('sub').textContent=view.name==='leg'?'Legenda della scheda':`Mese ${S.month} in corso`;
  view.name==='home'?home():view.name==='leg'?legend():session();
 }
-const go=(name,extra={})=>{view={...view,name,...extra};render();scrollTo(0,0)};
+const go=(name,extra={})=>{if(name!=='sess')coach.leave();view={...view,name,...extra};render();scrollTo(0,0)};
 /* --- timer di recupero --- */
 const tm=document.getElementById('tmr'),tT=document.getElementById('tT'),tL=document.getElementById('tL'),tM=document.getElementById('tM');
 let T=null,iv=null,ac=null;
 const secs=t=>{const m=t.match(/(\d+)′/),s=t.match(/(\d+)″/);return(m?+m[1]*60:0)+(s?+s[1]:0)};
 function beep(){try{ac=ac||new AudioContext();[0,.25,.5].forEach(o=>{const os=ac.createOscillator(),g=ac.createGain();os.frequency.value=880;g.gain.value=.15;os.connect(g);g.connect(ac.destination);os.start(ac.currentTime+o);os.stop(ac.currentTime+o+.15)})}catch(e){}try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
 function startT(sec,label){try{ac=ac||new AudioContext()}catch(e){}T={end:Date.now()+sec*1000,tot:sec,label,rung:0};tm.classList.add('on');tm.classList.remove('end');clearInterval(iv);iv=setInterval(tick,250);tick()}
-function tick(){if(!T)return;const r=Math.max(0,Math.round((T.end-Date.now())/1000));tT.textContent=Math.floor(r/60)+':'+String(r%60).padStart(2,'0');tM.style.width=(100-r/T.tot*100)+'%';tL.textContent=r?'Recupero · '+T.label:'Vai con la prossima serie';if(!r&&!T.rung){T.rung=1;tm.classList.add('end');beep()}}
+function tick(){if(!T)return;if(T.paused!=null){tL.textContent='Recupero in pausa';return}const r=Math.max(0,Math.round((T.end-Date.now())/1000));tT.textContent=Math.floor(r/60)+':'+String(r%60).padStart(2,'0');tM.style.width=(100-r/T.tot*100)+'%';tL.textContent=r?'Recupero · '+T.label:'Vai con la prossima serie';if(!r&&!T.rung){T.rung=1;tm.classList.add('end');beep();coach.restEnd()}coach.tick(r)}
 document.getElementById('tMinus').onclick=()=>{if(T){T.end-=15000;tick()}};
 document.getElementById('tPlus').onclick=()=>{if(T){T.end+=15000;T.tot+=15;T.rung=0;tm.classList.remove('end');tick()}};
 document.getElementById('tX').onclick=()=>{T=null;clearInterval(iv);tm.classList.remove('on')};
@@ -336,15 +337,14 @@ function curSess(){const m=view.m??S.month;const s=P.find(x=>x.w===view.w&&x.d==
 function checkClose(){const{m,s,g}=curSess();const all=items(s).every(e=>g.x[e.id]?.ok);if(all&&!g.closed)g.closed=Date.now();if(!all&&g.closed)delete g.closed}
 app.addEventListener('click',ev=>{
  const b=ev.target.closest('button');if(!b)return;const d=b.dataset;
+ if(b.id&&coach.click(b.id))return;
  if(d.open){const[w,dd]=d.open.split('-').map(Number);go('sess',{w,d:dd,m:view.m});return}
  if(b.id==='mPrev'){view.m=(view.m??S.month)-1;render();return}
  if(b.id==='mNext'){const n=(view.m??S.month)+1;view.m=n>=S.month?null:n;render();return}
  if(b.id==='newM'){S.month++;view.m=null;save();render();return}
  if(d.zoom){document.getElementById('ovImg').src=IMG[d.zoom];ov.classList.add('on');return}
- if(d.set){const e=ALL[d.set],{g}=curSess(),x=exLog(g,e.id),i=+d.i,ns=e.s[lv(e).s];
-  if(i<x.n){x.n=i}else{x.n=i+1;const rest=e.rest?e.rest[lv(e).q]:null;if(x.n<ns&&rest)startT(secs(rest),e.n);else if(x.n<ns&&e.circ)startT(30,'cambio esercizio')}
-  x.ok=x.n>=ns?1:0;checkClose();save();render();return}
- if(d.ok){const e=ALL[d.ok],{g}=curSess(),x=exLog(g,e.id);x.ok=x.ok?0:1;if(x.ok)x.n=e.s[lv(e).s];checkClose();save();render();
+ if(d.set){markSet(ALL[d.set],+d.i);return}
+ if(d.ok){const e=ALL[d.ok],{g}=curSess(),x=exLog(g,e.id);x.ok=x.ok?0:1;if(x.ok)x.n=e.s[lv(e).s];checkClose();save();render();coach.afterOk(e,x.ok);
   if(x.ok){const nx=document.querySelector('.ex:not(.done)');nx&&nx.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'})}return}
  if(d.lv){const e=ALL[d.lv];setLv(e,{[d.k]:+d.v});render();const c=document.getElementById('x-'+e.id);c&&c.querySelector('details')?.setAttribute('open','');return}
  if(d.pg){const e=ALL[d.pg],l=lv(e),m=S.month;const p={m};if(d.t==='r')p.r=l.r+1;if(d.t==='s')p.s=l.s+1;if(d.t==='w'){p.w=l.w+1;p.r=0;p.s=0;p.q=0}setLv(e,p);render();return}
@@ -360,6 +360,217 @@ app.addEventListener('click',ev=>{
  if(b.id==='bkR'){document.getElementById('bkBox').innerHTML='<textarea id="bkT" placeholder="Incolla qui il backup"></textarea><div class="row" style="margin-top:8px"><button class="ghost" id="bkGo">Ripristina</button></div>';return}
  if(b.id==='bkGo'){try{const d2=JSON.parse(document.getElementById('bkT').value);if(!d2.log||!d2.month)throw 0;S={...S,...d2};save();view.m=null;render()}catch(e){document.getElementById('bkBox').insertAdjacentHTML('beforeend','<p class="note">Il testo incollato non è un backup valido.</p>')}return}
 });
+/* ===== ALLENATORE VOCALE ===== */
+const FUN={
+a1:'Migliora la mobilità delle anche e allunga l’interno coscia: prepara le gambe a squat e affondi.',
+a2:'Lavora la rotazione dell’anca: anche più libere vogliono dire schiena più protetta.',
+a3:'Scalda gambe e glutei e allena l’equilibrio sulla gamba avanti: prepara gli esercizi di forza delle gambe.',
+b1:'Rinforza cosce e glutei in modo guidato; il rialzo sotto i talloni aiuta a scendere con la schiena dritta.',
+b2:'Rinforza i polpacci, che sostengono la caviglia, la camminata e le salite.',
+b3:'Rinforza il dorsale e la parte alta della schiena: migliora la postura e prepara alle trazioni.',
+b4:'Insegna a tenere le scapole chiuse e la schiena forte: prepara il corpo a tirarsi su.',
+b5:'Rinforza schiena e braccia con il peso del corpo: è il passo verso le trazioni vere.',
+c1:'Attiva i muscoli che ruotano e stabilizzano l’anca; l’elastico aggiunge un po’ di resistenza.',
+c2:'Lavora forza e mobilità di anca e coscia nella posizione bassa.',
+c3:'Mobilizza la parte alta della schiena e aiuta a respirare con il torace: contrasta la postura curva.',
+d1:'Rinforza cosce e glutei con la schiena appoggiata; il fermo di un secondo toglie lo slancio e fa lavorare il muscolo.',
+d2:'Rinforza i muscoli dietro la coscia, che proteggono il ginocchio e bilanciano quelli davanti.',
+d3:'Rinforza pettorali, spalle e tricipiti; lo yoga block limita la discesa per proteggere le spalle.',
+d4:'Rinforza i tricipiti, i muscoli dietro il braccio che servono per spingere.',
+d5:'Allena l’addome a resistere alla rotazione: è la parte del corpo che protegge la schiena.',
+e1:'Allunga i muscoli dietro le gambe e scalda le articolazioni.',
+e2:'Rinforza i piccoli muscoli che stabilizzano la spalla: spalle più sane quando spingi e tiri.',
+e3:'Migliora la mobilità di caviglia e ginocchio in avanti: serve per squat e affondi.',
+f1:'Rinforza gambe e glutei una gamba alla volta e allena equilibrio e controllo.',
+f2:'Rinforza cosce e glutei; il peso davanti obbliga a tenere il busto dritto e attiva l’addome.',
+f3:'Rinforza la parte centrale della schiena e le scapole, con il petto appoggiato per proteggere la zona lombare.',
+f4:'Rinforza bicipiti e avambracci; la presa neutra è più gentile con gomiti e polsi.',
+g1:'Mobilità di anche e ginocchia in posizione bassa, e forza per alzarsi da terra: un gesto utile ogni giorno.',
+g2:'Mobilità della caviglia e dell’anca in avanti.',
+g3:'Ruota la parte alta della schiena e apre il petto: contrasta la rigidità del torace.',
+h1:'Insegna a piegarsi dall’anca con la schiena neutra: è la base per sollevare pesi da terra senza rischi.',
+h2:'Rinforza gambe e glutei e migliora equilibrio e controllo nella discesa.',
+h3:'Isola i quadricipiti, i muscoli davanti alla coscia che sostengono il ginocchio.',
+h4:'Rinforza l’interno coscia, che stabilizza bacino e ginocchia.',
+h5:'Rinforza pettorali, spalle e tricipiti in modo guidato.',
+h6:'Rinforza i tricipiti; aprire le corde alla fine li fa lavorare fino in fondo.',
+h7:'Allena l’addome a non ruotare sotto carico: protegge la schiena.',
+i1:'Come le aperture, con una pausa che insegna al corpo a restare nella posizione di allungamento.',
+i2:'Rotazioni dell’anca in movimento: anche più libere e più controllate.',
+i3:'Ruota la parte alta della schiena e apre le spalle.',
+j1:'Rinforza cosce e glutei con un carico leggero, con un riferimento preciso per la profondità.',
+j2:'Rinforza un polpaccio alla volta e migliora l’equilibrio della caviglia.',
+j3:'Rinforza dorsale e bicipiti; abbassare prima le scapole insegna a tirare con la schiena e non solo con le braccia.',
+j4:'Unisce tenuta e tirate: schiena e braccia più forti.',
+k1:'Mobilità dell’anca con tenuta: allena la forza nella posizione di massima rotazione.',
+k2:'Mobilità di anca, ginocchio e caviglia con l’aiuto delle parallele.',
+k3:'Muove tutta la colonna e scioglie la schiena.',
+k4:'Apre il torace e mobilizza la parte alta della schiena.',
+l1:'Rinforza cosce e glutei con la schiena appoggiata, fino a novanta gradi di piegamento.',
+l2:'Rinforza i muscoli dietro la coscia, che proteggono il ginocchio.',
+l3:'Rinforza spalle e tricipiti in modo guidato, con le scapole stabili.',
+l4:'Rinforza petto, spalle, braccia e addome con il peso del corpo.',
+l5:'Rinforza i muscoli laterali dell’addome e i glutei: stabilità di bacino e schiena.',
+m1:'Scalda gambe e anche e ripassa il gesto dello squat.',
+m2:'Mobilità del bacino e allungamento dei muscoli dietro le gambe.',
+m3:'Allunga i muscoli dietro le gambe.',
+m4:'Stabilità della spalla, con una pausa che lascia allungare.',
+m5:'Mobilità della caviglia in avanti.',
+n1:'Forza e controllo di gambe e glutei nella discesa.',
+n2:'Rinforza cosce e glutei e allena a tenere il busto dritto nella discesa profonda.',
+n3:'Rinforza un lato della schiena alla volta e corregge le differenze tra destra e sinistra.',
+n4:'Rinforza i bicipiti; la rotazione della mano li fa lavorare in modo completo.',
+o1:'Mobilità di caviglie, ginocchia e anche in posizione bassa.',
+o2:'Forza e coordinazione per alzarsi da terra: un gesto di tutti i giorni.',
+o3:'Rotazione della parte alta della schiena con una pausa in apertura.',
+p1:'Rinforza glutei, muscoli dietro le gambe e schiena: insegna a sollevare carichi da terra in sicurezza.',
+p2:'Rinforza i quadricipiti; la tenuta iniziale li accende prima delle ripetizioni.',
+p3:'Rinforza i glutei laterali, che tengono fermo il bacino quando cammini.',
+p4:'Rinforza la parte alta del petto e le spalle.',
+p5:'Rinforza la parte laterale delle spalle.',
+p6:'Rinforza tutto l’addome in tenuta: più forza al centro, schiena più protetta.'
+};
+const coach=(()=>{
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ const TTS='speechSynthesis' in window;
+ let C={on:false,mode:SR?'sempre':'tocco',ear:false,muted:false};
+ try{const p=JSON.parse(localStorage.getItem('scheda-coach')||'{}');if(p.mode&&(SR||p.mode==='tocco'))C.mode=p.mode;C.ear=!!p.ear}catch(e){}
+ const keep=()=>{try{localStorage.setItem('scheda-coach',JSON.stringify({mode:C.mode,ear:C.ear}))}catch(e){}};
+ let rec=null,listening=false,speaking=0,voice=null,lock=null,audio=null,heard='',said='',tired=0,lastSaid='',halfSaid={},skip=new Set(),pushed=false;
+ const pick=a=>a[Math.floor(Math.random()*a.length)];
+ const norm=t=>t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’']/g,' ');
+ function loadVoice(){if(!TTS)return;const v=speechSynthesis.getVoices();voice=v.find(x=>/^it/i.test(x.lang)&&/google|natural|enhanced|premium/i.test(x.name))||v.find(x=>/^it/i.test(x.lang))||null}
+ if(TTS){loadVoice();speechSynthesis.onvoiceschanged=loadVoice}
+ /* --- parlare --- */
+ function say(t,flush){if(!C.on||C.muted||!TTS){said=t;paint();return}
+  if(flush)speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);u.lang='it-IT';if(voice)u.voice=voice;u.rate=1.02;
+  u.onstart=()=>{speaking++;stopRec()};
+  u.onend=u.onerror=()=>{speaking=Math.max(0,speaking-1);if(!speaking&&!speechSynthesis.pending)setTimeout(()=>{if(!speaking)listen()},250)};
+  speechSynthesis.speak(u);said=t;lastSaid=t;paint()}
+ /* --- testi parlati --- */
+ const sp=t=>String(t).replace(/(\d+),(\d+)/g,'$1 virgola $2').replace(/kg/g,'chili').replace(/x lato/g,'per lato').replace(/(\d+)′(\d+)″/g,(m,a,b)=>a+(a==='1'?' minuto e ':' minuti e ')+b).replace(/(\d+)′/g,(m,a)=>a+(a==='1'?' minuto':' minuti')).replace(/(\d+)″/g,(m,a)=>a+(a==='1'?' secondo':' secondi')).replace(/\+/g,'più').replace(/·/g,',').replace(/°/g,' gradi');
+ function reps(e,l){const v=e.r[l.r];return(typeof v==='number'?v+' ripetizioni':sp(v))+(e.u?' '+sp(e.u):'')}
+ function target(e){const l=lv(e),ns=e.s[l.s];return`${reps(e,l)}, ${ns} ${ns===1?'serie':'serie'}`+(e.w.length?`, ${sp(e.w[l.w])}`:'')}
+ function restOf(e){const l=lv(e);return e.rest?e.rest[l.q]:null}
+ /* --- dove siamo --- */
+ function ctx(){const{m,s,g}=curSess();const it=items(s);return{m,s,g,it}}
+ function cur(){const{g,it}=ctx();for(let k=0;k<it.length;k++){const e=it[k];if(g.x[e.id]?.ok||skip.has(e.id))continue;
+   if(e.circ&&it[k+1]){const o=it[k+1];if(!g.x[o.id]?.ok&&!skip.has(o.id)&&(g.x[o.id]?.n||0)<(g.x[e.id]?.n||0))return o}
+   const prev=it[k-1];if(prev&&prev.circ&&!g.x[prev.id]?.ok&&!skip.has(prev.id)&&(g.x[prev.id]?.n||0)<(g.x[e.id]?.n||0))return prev;
+   return e}return null}
+ function prog(){const{g,it}=ctx();const dn=it.filter(e=>g.x[e.id]?.ok).length;return{dn,tot:it.length,left:it.length-dn}}
+ function intro(e){if(!e)return'';const x=ctx().g.x[e.id]||{n:0},ns=e.s[lv(e).s];
+  return`${e.n}. ${x.n?`Serie ${x.n+1} di ${ns}: `:''}${target(e)}.`+(e.circ?' È un circuito: alterni con l’esercizio che segue.':'')}
+ function where(){const e=cur(),p=prog();if(!e)return'Allenamento finito per oggi. Hai fatto tutto quello che dice la scheda.';
+  const x=ctx().g.x[e.id]||{n:0},ns=e.s[lv(e).s];
+  return`Hai completato ${p.dn} ${p.dn===1?'esercizio':'esercizi'} su ${p.tot}. Adesso ${e.n}, serie ${x.n+1} di ${ns}. `+(p.left===1?'È l’ultimo, ci sei quasi.':p.dn/p.tot>=.5?`Ne mancano ${p.left}: sei oltre metà, stai andando bene.`:`Ne mancano ${p.left}. Un passo alla volta.`)}
+ /* --- eventi dell’app --- */
+ function afterSet(e,x,ns,rest){if(!C.on)return;tired=0;
+  if(x.ok){done(e);return}
+  const left=ns-x.n;
+  let t=`Serie ${x.n} di ${ns} fatta. `+pick(['Bene.','Ottimo.','Così.','Bel lavoro.']);
+  if(e.circ){const{it}=ctx();const o=it[it.indexOf(e)+1];if(o)t+=` Ora ${o.n}: ${reps(o,lv(o))}.`}
+  else if(rest)t+=` Recupero ${sp(rest)}.`+(left===1?' Poi l’ultima serie.':'');
+  else{const nx=cur();if(nx&&nx!==e)t+=` Ora ${nx.n}: ${reps(nx,lv(nx))}.`}
+  say(t,true)}
+ function done(e){const p=prog();const nx=cur();let t=pick(['Esercizio completato.','Fatto, esercizio chiuso.','Ottimo, questo è finito.'])+' Per oggi su questo esercizio basta così. ';
+  if(!nx){t=`Allenamento completato! Hai fatto tutti i ${p.tot} esercizi della scheda. Bevi, respira, e ci vediamo al prossimo allenamento.`;say(t,true);return}
+  if(p.left===1)t+='Ultimo esercizio, dai che sei alla fine! ';
+  else if(p.dn===Math.ceil(p.tot/2))t+='Sei a metà allenamento. ';
+  const g0=ctx().s.mob.every(m=>ctx().g.x[m.id]?.ok||skip.has(m.id));if(g0&&ctx().s.mob.includes(e))t+='Riscaldamento finito, ora si lavora sul serio. ';
+  t+='Prossimo: '+intro(nx);say(t,true);scrollCur()}
+ function afterOk(e,ok){if(!C.on)return;if(ok)done(e);else say(`${e.n}: tolto il segno di fatto.`,true)}
+ function tick(r){if(!C.on||!T)return;const k=T.end+'';
+  if(T.tot>=60&&r===Math.floor(T.tot/2)&&!halfSaid[k+'h']){halfSaid[k+'h']=1;const p=prog();
+   say(pick(['Recupera bene, respira con calma.','Metà recupero. Spalle giù, respira.',p.left<=2?'Dai che sei arrivato quasi alla fine di questa sessione.':`Hai già fatto ${p.dn} esercizi su ${p.tot}.`,'Stai lavorando bene, continua così.']))}
+  if(T.tot>=25&&r===10&&!halfSaid[k+'10']){halfSaid[k+'10']=1;say('Dieci secondi. Preparati.')}}
+ function restEnd(){if(!C.on)return;const e=cur();if(!e)return;const x=ctx().g.x[e.id]||{n:0},ns=e.s[lv(e).s];
+  say(ns-x.n===1?`Vai! Ultima serie, dai che ci sei: ${reps(e,lv(e))}.`:`Vai! Serie ${x.n+1} di ${ns}: ${reps(e,lv(e))}.`,true)}
+ /* --- capire cosa dice --- */
+ const has=(t,re)=>re.test(t);
+ function hear(alts){const t=norm(alts[0]||'');heard=alts[0]||'';paint();const all=alts.map(norm).join(' | ');const e=cur();
+  if(has(all,/\b(male|dolore|fa male|crampo|fitta|mi sono fatto)\b/)){if(e){skip.add(e.id);T&&document.getElementById('tX').click()}
+   say('Fermati subito: il dolore non va mai superato. Salto questo esercizio. Riprendilo solo dopo averne parlato con il tuo trainer.'+(cur()?' Se te la senti, il prossimo è '+cur().n+'.':''),true);render();return}
+  if(has(t,/(silenzio|zitto|stai zitt|basta parlare)/)){say('Va bene, sto in silenzio. Riattivami dal pulsante.',true);setTimeout(()=>{C.muted=true;paint()},2500);return}
+  if(has(t,/(un ?altra|ancora una|ne faccio altr|di piu|aggiung|altre due|faccio di piu)/)){
+   say(e?`La scheda per oggi dice ${target(e)}. Fermati lì: il progresso arriva il mese prossimo, quando sali di livello. Fare di più adesso non ti fa crescere prima.`:'Per oggi hai finito tutto quello che dice la scheda. Basta così, ottimo lavoro.',true);return}
+  if(has(t,/(a cosa serve|a che serve|perche|che muscol|cosa allena|cosa lavora|a cosa mi serve)/)){say(e?`${e.n}. ${FUN[e.id]||'Fa parte del programma del tuo trainer.'}`:'Hai finito tutti gli esercizi di oggi.',true);return}
+  if(has(t,/(come si fa|come lo faccio|spiega|esecuzione|come devo fare)/)){say(e?`${e.n}. ${sp(e.d)}`:'Hai finito tutti gli esercizi di oggi.',true);return}
+  if(has(t,/(quanto manca|quanto tempo)/)&&T&&!/(alla fine|esercizi|allenamento)/.test(t)){const r=Math.max(0,Math.round((T.end-Date.now())/1000));say(r?`Mancano ${r} secondi di recupero.`:'Il recupero è finito: vai.',true);return}
+  if(has(t,/(come sto andando|a che punto|quanto manca|quanti mancano|come va|come procede)/)){say(where(),true);return}
+  if(has(t,/(stanc|non ce la faccio|cotto|fatica|pesante|sfinit|distrutt)/)){tired++;
+   say(tired>1?'Ascolta il corpo: se senti che non ce la fai, chiudi qui questa serie. È meglio fare bene che fare tanto, e non si va mai oltre la scheda.':`È normale, vuol dire che stai lavorando. Prenditi tutto il recupero${e&&restOf(e)?' di '+sp(e.rest[0]):''}, respira lento. Fai solo quello che dice la scheda, niente di più.`,true);
+   if(e&&e.rest&&lv(e).q!==0)setLv(e,{q:0});return}
+  if(has(t,/(fatto|fatta|finito|finita|ho finito|terminat|completat|chiuso|serie fatta|ok fatto)/)){if(!e){say('Hai già finito tutto per oggi.',true);return}
+   const x=ctx().g.x[e.id]||{n:0};markSet(e,x.n);return}
+  if(has(t,/(salta|prossimo esercizio|passa al prossimo|vai avanti|cambia esercizio)/)){if(e){skip.add(e.id);const nx=cur();say(nx?`Salto ${e.n}. Prossimo: ${intro(nx)}`:'Era l’ultimo. Allenamento finito.',true);paintCur();scrollCur()}return}
+  if(has(t,/(ripeti|non ho capito|cosa devo fare|che esercizio|cosa faccio|qual e)/)){say(e?intro(e)+(restOf(e)?` Recupero ${sp(restOf(e))}.`:''):where(),true);return}
+  if(has(t,/(pausa|aspetta|ferma il tempo|stop timer|metti in pausa)/)){if(T){T.paused=T.end-Date.now();T.end=Infinity;say('Recupero in pausa. Di’ riprendi quando vuoi.',true)}else say('Non c’è nessun recupero in corso.',true);return}
+  if(has(t,/(riprendi|riparti|continua)/)){if(T&&T.paused!=null){T.end=Date.now()+T.paused;T.paused=null;say('Riparto.',true)}else say(e?intro(e):where(),true);return}
+  if(has(t,/(inizia|pronto|cominciamo|partiamo|via)/)){say(e?intro(e):where(),true);return}
+  say('Non ho capito. Puoi dire: fatto, come sto andando, a cosa serve, come si fa, ripeti, quanto manca.',true)}
+ /* --- ascoltare --- */
+ function mkRec(){if(!SR||rec)return;rec=new SR();rec.lang='it-IT';rec.continuous=false;rec.interimResults=false;rec.maxAlternatives=3;
+  rec.onstart=()=>{listening=true;paint()};
+  rec.onresult=ev=>{const r=ev.results[ev.results.length-1];hear([...r].map(a=>a.transcript))};
+  rec.onerror=ev=>{if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){C.mode='tocco';keep();say('Non ho il permesso di usare il microfono. Puoi usare i pulsanti, oppure dare il permesso nelle impostazioni del browser.',true)}};
+  rec.onend=()=>{listening=false;paint();if(C.on&&C.mode==='sempre'&&!speaking&&!document.hidden)setTimeout(listen,350)}}
+ function listen(force){if(!C.on||!SR||C.muted)return;if(!force&&C.mode!=='sempre')return;if(speaking||listening)return;mkRec();try{rec.start()}catch(e){}}
+ function stopRec(){if(rec&&listening){try{rec.abort()}catch(e){}}}
+ /* --- schermo acceso e tasto delle cuffie --- */
+ async function wake(){try{if(navigator.wakeLock&&!lock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>{lock=null})}}catch(e){}}
+ function silentWav(){const sr=8000,n=sr,b=new ArrayBuffer(44+n),v=new DataView(b),w=(o,s)=>[...s].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));
+  w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);for(let i=0;i<n;i++)v.setUint8(44+i,128);
+  return URL.createObjectURL(new Blob([b],{type:'audio/wav'}))}
+ function earOn(){if(!('mediaSession' in navigator))return false;try{audio=audio||new Audio(silentWav());audio.loop=true;audio.play().catch(()=>{});
+  navigator.mediaSession.metadata=new MediaMetadata({title:'Allenatore vocale',artist:'Scheda Alberto'});
+  const fatto=()=>{audio.play().catch(()=>{});hear(['fatto'])};
+  navigator.mediaSession.setActionHandler('play',fatto);navigator.mediaSession.setActionHandler('pause',fatto);
+  navigator.mediaSession.setActionHandler('nexttrack',()=>hear(['ripeti']));navigator.mediaSession.setActionHandler('previoustrack',()=>hear(['come sto andando']));return true}catch(e){return false}}
+ function earOff(){try{audio&&audio.pause();['play','pause','nexttrack','previoustrack'].forEach(a=>navigator.mediaSession.setActionHandler(a,null))}catch(e){}}
+ document.addEventListener('visibilitychange',()=>{if(!C.on)return;if(document.hidden)stopRec();else{wake();listen()}});
+ /* --- accendere / spegnere --- */
+ function start(){C.on=true;C.muted=false;skip=new Set();wake();if(C.ear)earOn();
+  const e=cur(),p=prog();const{s}=ctx();
+  say(e?`Ciao Alberto, sono il tuo allenatore. Settimana ${s.w}, giorno ${s.d}: ${p.tot} esercizi${p.dn?`, ${p.dn} già fatti`:''}. ${C.mode==='sempre'?'Ti ascolto: a fine serie di’ fatto.':'A fine serie tocca il pallino o il pulsante del microfono.'} Si comincia con ${intro(e)}`:where(),true);paint();scrollCur()}
+ function stop(){if(TTS)speechSynthesis.cancel();C.on=false;said='';heard='';stopRec();earOff();try{lock&&lock.release()}catch(e){}lock=null;paint()}
+ /* --- pannello --- */
+ function panel(){const ok=TTS;
+  if(!C.on)return`<section class="coach"><div class="ch"><b>Allenatore in cuffia</b><span>Ti guida a voce esercizio per esercizio, ti dà i tempi di recupero e risponde a «fatto», «come sto andando», «a cosa serve».${ok?'':' Questo browser non sa parlare: apri l’app con Chrome.'}</span></div><button class="go" id="cOn" ${ok?'':'disabled'}>Attiva l’allenatore</button></section>`;
+  return`<section class="coach on"><div class="ch"><b>Allenatore attivo</b><span id="cSt">${stTxt()}</span></div>
+  <div class="row"><button class="go" id="cMic">${SR?'Parla':'Ripeti'}</button><button class="ghost" id="cWhere">Come sto andando</button><button class="ghost" id="cWhy">A cosa serve</button></div>
+  <details><summary>Impostazioni e cosa puoi dire</summary>
+  <div class="lvl"><label>Ascolto</label><div class="chips"><button class="chip ${C.mode==='sempre'?'on':''}" id="cModeA" ${SR?'':'disabled'}>Sempre in ascolto</button><button class="chip ${C.mode==='tocco'?'on':''}" id="cModeT">Solo quando tocco Parla</button></div>
+  <label>Tasto delle cuffie (ferma la musica)</label><div class="chips"><button class="chip ${C.ear?'on':''}" id="cEar">${C.ear?'Attivo: un tocco = fatto':'Spento'}</button></div></div>
+  <p class="desc">Puoi dire: <b>fatto</b> · <b>come sto andando</b> · <b>a cosa serve</b> · <b>come si fa</b> · <b>ripeti</b> · <b>quanto manca</b> · <b>pausa</b> / <b>riprendi</b> · <b>salta</b> · <b>sono stanco</b> · <b>mi fa male</b> · <b>silenzio</b>.</p>
+  <p class="note">Lo schermo resta acceso finché l’allenatore è attivo. Se blocchi il telefono, la voce si ferma.${SR?' Il riconoscimento della voce usa internet.':' Questo browser non riconosce la voce: usa i pulsanti, oppure apri l’app con Chrome.'}</p>
+  <div class="row"><button class="ghost" id="cOff">Spegni l’allenatore</button></div></details></section>`}
+ function stTxt(){return C.muted?'In silenzio. Tocca Parla per riattivarmi.':listening?'Ti ascolto…':heard||said?`${heard?`Hai detto: «${esc(heard)}». `:''}`:'Pronto.'}
+ function fab(){let b=document.getElementById('cFab');if(!b){b=document.createElement('button');b.id='cFab';b.type='button';b.onclick=()=>click('cMic');document.body.appendChild(b)}
+  const show=C.on&&view.name==='sess';b.hidden=!show;if(!show)return;b.classList.toggle('lis',listening);b.textContent=C.muted?'Riattiva':listening?'Ti ascolto…':SR?'Parla':'Ripeti';b.setAttribute('aria-label','Allenatore: '+b.textContent)}
+ function paint(){const st=document.getElementById('cSt');if(st)st.innerHTML=stTxt();const f=document.getElementById('cMic');if(f)f.classList.toggle('lis',listening);fab();paintCur()}
+ function paintCur(){document.querySelectorAll('.ex.cur').forEach(x=>x.classList.remove('cur'));if(!C.on||view.name!=='sess')return;const e=cur();e&&document.getElementById('x-'+e.id)?.classList.add('cur')}
+ function scrollCur(){const e=cur();const el=e&&document.getElementById('x-'+e.id);el&&el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'})}
+ function click(id){
+  if(id==='cOn'){start();render();return true}
+  if(id==='cOff'){stop();render();return true}
+  if(id==='cMic'){if(C.muted){C.muted=false;say('Eccomi.',true);return true}if(SR){if(TTS)speechSynthesis.cancel();speaking=0;listen(true)}else say(intro(cur())||where(),true);return true}
+  if(id==='cWhere'){say(where(),true);return true}
+  if(id==='cWhy'){const e=cur();say(e?`${e.n}. ${FUN[e.id]}`:where(),true);return true}
+  if(id==='cModeA'){C.mode='sempre';keep();listen();render();return true}
+  if(id==='cModeT'){C.mode='tocco';keep();stopRec();render();return true}
+  if(id==='cEar'){C.ear=!C.ear;keep();C.ear?earOn():earOff();render();return true}
+  return false}
+ function leave(){if(C.on)stop()}
+ return{panel,afterSet,afterOk,tick,restEnd,click,paint:()=>{fab();paintCur()},leave,get on(){return C.on},_hear:hear,_cur:()=>cur()};
+})();
+function markSet(e,i){const{g}=curSess(),x=exLog(g,e.id),ns=e.s[lv(e).s];
+ if(i<x.n){x.n=i;x.ok=0;checkClose();save();render();return}
+ x.n=Math.min(i+1,ns);const rest=e.rest?e.rest[lv(e).q]:null;
+ if(x.n<ns&&rest)startT(secs(rest),e.n);else if(x.n<ns&&e.circ)startT(30,'cambio esercizio');
+ x.ok=x.n>=ns?1:0;checkClose();save();render();coach.afterSet(e,x,ns,rest)}
+
 render();
 }
 </script>

@@ -15,4 +15,9 @@ scripts.forEach((s, i) => { try { new vm.Script(s, {filename: 'script' + i}); } 
 try { new vm.Script(fs.readFileSync('sw.js', 'utf8')); } catch (e) { fail('sw.js: ' + e.message); }
 const n = (html.match(/X\('|M\('/g) || []).length;
 if (n < 60) fail('esercizi trovati: ' + n + ' (attesi almeno 60)');
-console.log('Collaudo OK: ' + n + ' esercizi, manifest e service worker a posto.');
+if (!html.includes('const coach=') || !html.includes('coach.panel()')) fail('allenatore vocale mancante');
+const fun = (html.match(/const FUN=\{([\s\S]*?)\n\};/) || [,''])[1].split('\n').filter(l => /^[a-p]\d:/.test(l)).length;
+const ids = [...html.matchAll(/[XM]\('([a-p]\d)'/g)].map(m => m[1]);
+const senza = ids.filter(id => !new RegExp('\\n' + id + ':').test(html));
+if (senza.length) fail('esercizi senza spiegazione "a cosa serve": ' + senza.join(', '));
+console.log('Collaudo OK: ' + n + ' esercizi, ' + fun + ' spiegazioni a cosa serve, allenatore vocale, manifest e service worker a posto.');
