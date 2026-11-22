@@ -1,0 +1,20 @@
+name: Collaudo
+on: [push, pull_request]
+jobs:
+  collaudo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Controlla file e codice
+        run: node tests/collaudo.js
+      - name: Avvia il sito e controlla che risponda
+        run: |
+          python3 -m http.server 8080 &
+          sleep 2
+          for f in / /index.html /manifest.webmanifest /sw.js /icons/icon-192.png /icons/icon-512.png /icons/apple-touch-icon.png; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$f")
+            echo "$f -> $code"; [ "$code" = "200" ] || exit 1
+          done
