@@ -1,9 +1,9 @@
 // Collaudo automatico: file presenti, manifest valido, script della pagina senza errori di sintassi.
 const fs = require('fs'), vm = require('vm');
 const fail = m => { console.error('ERRORE: ' + m); process.exit(1); };
-for (const f of ['index.html', 'manifest.webmanifest', 'sw.js', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'])
+for (const f of ['index.html', 'manifest.json', 'sw.js', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'])
   if (!fs.existsSync(f)) fail('manca ' + f);
-const man = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
+const man = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
 if (!man.name || !man.start_url || man.display !== 'standalone' || !man.icons.some(i => i.sizes === '512x512')) fail('manifest incompleto');
 const html = fs.readFileSync('index.html', 'utf8');
 if (!html.startsWith('<!DOCTYPE html>')) fail('index.html non inizia con <!DOCTYPE html>');
