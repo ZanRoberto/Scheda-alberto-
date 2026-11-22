@@ -255,15 +255,17 @@ function home(){
 }
 const STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 const IOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-let deferredPrompt=null,hideInst=false;try{hideInst=localStorage.getItem('scheda-inst-x')==='1'}catch(e){}
+const SAMSUNG=/SamsungBrowser/i.test(navigator.userAgent);
+let deferredPrompt=null,hideInst=false;
 function installCard(){
  if(STANDALONE||hideInst)return'';
- if(deferredPrompt)return`<section class="inst"><img src="icons/icon-192.png" alt=""><div><b>Metti la scheda sul telefono</b><span>Un’icona sulla schermata Home, si apre come un’app, funziona anche senza rete.</span></div><div class="row"><button class="go" id="instGo">Installa l’app</button><button class="ghost" id="instX">Non ora</button></div></section>`;
+ if(deferredPrompt)return`<section class="inst"><img src="icons/icon-192.png" alt=""><div><b>Metti la scheda sul telefono</b><span>Un’icona sulla schermata Home, si apre come un’app, funziona anche senza rete.</span></div><div class="row"><button class="go" id="instGo">Installa l’app</button><button class="ghost" id="instX">Non ora</button></div><span>Dopo aver confermato, cerca l’icona anche nell’elenco di tutte le app.</span></section>`;
+ if(SAMSUNG)return`<section class="inst"><img src="icons/icon-192.png" alt=""><div><b>Metti la scheda sul telefono</b><span>1. Se in alto vedi una <b>X</b>, la pagina è aperta dentro un’altra app: tocca <b>⋮</b> e scegli <b>“Apri in Samsung Internet”</b>.<br>2. Poi tocca il menu <b>≡</b> in basso a destra → <b>“Aggiungi pagina a”</b> → <b>“Schermata Home”</b>.</span></div><div class="row"><button class="ghost" id="instX">Nascondi</button></div></section>`;
  if(IOS)return`<section class="inst"><img src="icons/icon-192.png" alt=""><div><b>Metti la scheda sul telefono</b><span>In Safari tocca <b>Condividi</b> (il quadrato con la freccia in su), poi <b>“Aggiungi alla schermata Home”</b> e <b>Aggiungi</b>.</span></div><div class="row"><button class="ghost" id="instX">Fatto, nascondi</button></div></section>`;
  return`<section class="inst"><img src="icons/icon-192.png" alt=""><div><b>Metti la scheda sul telefono</b><span>Apri il menu del browser (⋮) e scegli <b>“Installa app”</b> oppure <b>“Aggiungi a schermata Home”</b>.</span></div><div class="row"><button class="ghost" id="instX">Fatto, nascondi</button></div></section>`;
 }
 addEventListener('beforeinstallprompt',ev=>{ev.preventDefault();deferredPrompt=ev;if(view.name==='home')render()});
-addEventListener('appinstalled',()=>{deferredPrompt=null;hideInst=true;render()});
+addEventListener('appinstalled',()=>{deferredPrompt=null;render()});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 function card(e,g,m){
  const l=lv(e),xl=g.x[e.id]||{n:0,ok:0},ns=e.s[l.s],im=e.img&&IMG[e.img];
@@ -353,7 +355,7 @@ app.addEventListener('click',ev=>{
   S.prev=keep;view={name:'home',m:null,w:1,d:1};T=null;clearInterval(iv);tm.classList.remove('on');save();render();return}
  if(b.id==='rsUndo'){S={...S.prev};view.m=null;save();render();return}
  if(b.id==='instGo'&&deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;render()});return}
- if(b.id==='instX'){hideInst=true;try{localStorage.setItem('scheda-inst-x','1')}catch(e){}render();return}
+ if(b.id==='instX'){hideInst=true;render();return}
  if(b.id==='bkC'){const t=JSON.stringify(S);const box=document.getElementById('bkBox');navigator.clipboard?.writeText(t).then(()=>{box.innerHTML='<p class="note">Backup copiato. Incollalo in una nota o in un messaggio a te stesso.</p>'},()=>{box.innerHTML='<p class="note">Copia questo testo:</p><textarea readonly>'+esc(t)+'</textarea>'});return}
  if(b.id==='bkR'){document.getElementById('bkBox').innerHTML='<textarea id="bkT" placeholder="Incolla qui il backup"></textarea><div class="row" style="margin-top:8px"><button class="ghost" id="bkGo">Ripristina</button></div>';return}
  if(b.id==='bkGo'){try{const d2=JSON.parse(document.getElementById('bkT').value);if(!d2.log||!d2.month)throw 0;S={...S,...d2};save();view.m=null;render()}catch(e){document.getElementById('bkBox').insertAdjacentHTML('beforeend','<p class="note">Il testo incollato non è un backup valido.</p>')}return}
